@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{current_target}}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">{{current_target}}</h1>
+        <div class="form-group">
+            <label for="topic">Filter by Topic:</label>
+            <select id="topic" class="form-control short-select">
+                <option value="">All</option>
+                {% for topic in topics %}
+                <option value="{{ topic }}">{{ topic }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="sentiment">Filter by Sentiment:</label>
+            <select id="sentiment" class="form-control short-select">
+                <option value="">All</option>
+                {% for sentiment in sentiments %}
+                <option value="{{ sentiment }}">{{ sentiment }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-row filter_date">
+            <div class="form-group col-md-6">
+                <label for="start_date">Start Date:</label>
+                <input type="date" id="start_date" class="form-control">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="end_date">End Date:</label>
+                <input type="date" id="end_date" class="form-control">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="search">Search:</label>
+            <div class="input-group">
+                <input type="text" id="search" class="form-control" placeholder="Search...">
+            
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="search">Change Target:</label>
+            <div class="input-group">
+                <input type="text" id="target" class="form-control" placeholder="Target...">
+            
+            </div>
+        </div>
+        <div class="form-group">
+            <button id="refresh" class="btn btn-primary">Refresh Data</button>
+            <button id="toggle-view" class="btn btn-secondary">Toggle View</button>
+            <button id="clear-search" class="btn btn-outline-secondary" type="button">Clear</button>
+        </div>
+        <div class="form-group">
+            <select id="time-frame" class="form-control time-frame-select">
+                <option value="M">Monthly</option>
+                <option value="W">Weekly</option>
+                <option value="D">Daily</option>
+            </select>
+        </div>
+        <div class="table-responsive" id="table-container">
+            {{ table|safe }}
+        </div>
+        <div id="trend-chart-container" class="chart-container" style="display:none;">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+    <div class="overlay">
+        <div class="spinner">
+        </div>
+        <div class="cancel-fetch-btn">
+            <button id="cancel-fetch" class="btn btn-danger">Cancel</button>
+        </div>
+    </div>
+    <div class="sentimentChart">
+        <canvas id="sentimentChart"></canvas>
+    </div>
+    <div class="wordcloud">
+        <img id="wordcloud" src="{{ url_for('filtered_wordcloud') }}" class="img-fluid">
+    </div>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}" defer></script>
+</body>
+</html>

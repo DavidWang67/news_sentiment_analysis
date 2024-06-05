@@ -1,0 +1,90 @@
+.spinner {
+    display: none;
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(0, 0, 0, 0.1);
+    border-top: 5px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1001;
+}
+
+.cancel-fetch-btn {
+    margin: 0;
+    position: fixed;
+    top: 65%;
+    left: 51.7%;
+    transform: translate(-50%, -50%);
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 1000;
+}
+
+.sentimentChart {
+    position: absolute;
+    top: 5vh;
+    right: 2vw;
+    width: 40vh;
+    height: 40vh;
+}
+.wordcloud{
+    position: absolute;
+    top: 10vh;
+    right: 20vw;
+
+}
+
+.short-select {
+    width: 30vw;
+}
+.time-frame-select{
+    top: 10px;
+    width: 30vw;
+}
+.filter_date {
+    width: 40vw;
+}
+.trendChart{
+    width: 80vw;
+    height: 70vh;
+}
+
+/* .clearable {
+    position: relative;
+}
+.clear_search input[type=text] {
+    padding-right: 24px;
+}
+.clear_search {
+    display: none;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+.clearable input[type=text]:not(:placeholder-shown) + .clearable__clear {
+    display: block;
+} */
+
+.table th.label-col, .table td.label-col { width: 10%; }
+.table th.title-col, .table td.title-col { width: 25%; }
+.table th.snippet-col, .table td.snippet-col { width: 40%; }
+.table th.source-col, .table td.source-col { width: 10%; }
+.table th.date-col, .table td.date-col { width: 15%; }
