@@ -71,6 +71,6 @@ if __name__ == '__main__':
     sentiment_analysis = pipeline('sentiment-analysis', model=model, tokenizer=tokenizer)
     df = pd.read_csv('news_data_keywords.csv')
     df['label'] = df['title_translated'].apply(analyze_sentiment, targets=targets)
-    df.to_csv('news_data_analyzed.csv', index=False)
+    df.to_csv('news_data_analyzed.csv', index=False) 
 
     print('sentiment analysis completed and saved to news_data_analyzed.csv')
