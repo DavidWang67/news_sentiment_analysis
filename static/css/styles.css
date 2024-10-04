@@ -43,22 +43,24 @@
     width: 40vh;
     height: 40vh;
 }
+
 .wordcloud{
     position: absolute;
-    top: 10vh;
-    right: 20vw;
-
+    top: 5vh;
+    right: 30vh;
+    width: 80vh;
+    height: 40vh;
 }
 
 .short-select {
-    width: 30vw;
+    width: 15vw;
 }
 .time-frame-select{
     top: 10px;
     width: 30vw;
 }
 .filter_date {
-    width: 40vw;
+    width: 20vw;
 }
 .trendChart{
     width: 80vw;

@@ -3,7 +3,8 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from deep_translator import GoogleTranslator
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse as dateutil_parse
 import time
 import sys
@@ -12,8 +13,34 @@ from newspaper import Article
 # from newspaper import Article
 # import nltk
 
-# ------------------------DATE PARSING FUNCTIONS------------------------
+# search_list = ['網路家庭', '可樂旅遊', '儒鴻企業', '月稱光明寺', '泰彰投資', '知勉工業', '錦鋐企業', '熙特爾新能源', '明怡投資']
 
+# ------------------------DATE PARSING FUNCTIONS------------------------
+def calculate_date(date_str):
+    now = datetime.now()
+    
+    # Match patterns for hours ago, days ago, weeks ago, and months ago
+    hours_ago_match = re.match(r'(\d+) 小時前', date_str)
+    days_ago_match = re.match(r'(\d+) 天前', date_str)
+    weeks_ago_match = re.match(r'(\d+) 週前', date_str)
+    months_ago_match = re.match(r'(\d+) 個月前', date_str)
+    
+    if hours_ago_match:
+        hours_ago = int(hours_ago_match.group(1))
+        calculated_date = now - timedelta(hours=hours_ago)
+    elif days_ago_match:
+        days_ago = int(days_ago_match.group(1))
+        calculated_date = now - timedelta(days=days_ago)
+    elif weeks_ago_match:
+        weeks_ago = int(weeks_ago_match.group(1))
+        calculated_date = now - timedelta(weeks=weeks_ago)
+    elif months_ago_match:
+        months_ago = int(months_ago_match.group(1))
+        calculated_date = now - relativedelta(months=months_ago)
+    else:
+        return None  # Return None if the pattern does not match
+    
+    return calculated_date.strftime("%Y年%m月%d日")
 # Check if the date string matches a specific format
 def is_valid_date_format(input_string):
     pattern = r'^\d{4}年\d{1,2}月\d{1,2}日$'
@@ -35,7 +62,13 @@ def parse_date(date_str):
         (r'\d{4}年\d{1,2}月\d{1,2}日', "%Y年%m月%d日"),
         (r'\b\d{8}\b', "%Y%m%d"),
         (r'\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?\b', None),  # Extended ISO 8601 format
-        (r'\b\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}\b', "%Y-%m-%d %H:%M:%S%z"),  # New format
+        (r'\b\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}\b', "%Y-%m-%d %H:%M:%S%z"),  # ISO 8601 with timezone
+        (r'[A-Za-z]+ \d{1,2}, \d{4} at \d{1,2}:\d{2} [APM]{2} [A-Z]{3}', "%B %d, %Y at %I:%M %p %Z"),  # Example: July 3, 2024 at 6:07 PM EDT
+        (r'\b\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\b', "%Y-%m-%d %H:%M:%S"),  # Example: 2024-07-03 00:00:00
+        (r'\b\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+\d{2}:\d{2}\b', "%Y-%m-%d %H:%M:%S%z"),  # Example: 2024-07-03 07:04:04+00:00
+        (r'\b[A-Za-z]{3} \d{2}, \d{4}, \d{2}:\d{2} [APM]{2}\b', "%b %d, %Y, %I:%M %p"),  # Example: Jul 02, 2024, 12:32 AM
+        (r'\b[A-Za-z]{3}, [A-Za-z]{3} \d{1,2}, \d{4}, \d{1,2}:\d{2} [APM]{2} GMT[+-]\d{1,2}\b', "%a, %b %d, %Y, %I:%M %p GMT%z"),  # Example: Thu, Jul 4, 2024, 4:13 AM GMT+8
+        (r'\b\d{2}:\d{2} [APM]{2} [A-Z]{2} \d{2}/\d{2}/\d{4}\b', "%I:%M %p %Z %m/%d/%Y")  # Example: 04:00 PM ET 07/03/2024
     ]
     
     for pattern, date_format in patterns_formats:
@@ -72,7 +105,14 @@ def find_date_in_content(url):
         r'\d{4}\.\d{1,2}\.\d{1,2}',       # Example: 2024.01.12
         r'\d{4}年\d{1,2}月\d{1,2}日',     # Example: 2024年1月12日
         r'\b\d{8}\b',                     # Example: 20240112
-        r'\b\d{4}-\d{1,2}-\d{1,2}T\d{1,2}:\d{1,2}:\d{1,2}(?:\.\d+)?(?:Z|[+-]\d{1,2}:\d{1,2})?\b'  # Example: 2024-01-12T14:30:00Z
+        r'\b\d{4}-\d{2}-\d{2}T\d{1,2}:\d{1,2}:\d{1,2}(?:\.\d+)?(?:Z|[+-]\d{1,2}:\d{1,2})?\b',  # Example: 2024-01-12T14:30:00Z
+        r'[A-Za-z]+ \d{1,2}, \d{4} at \d{1,2}:\d{2} [APM]{2} [A-Z]{3}',  # Example: July 3, 2024 at 6:07 PM EDT
+        r'\b\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\b',  # Example: 2024-07-03 00:00:00
+        r'\b\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+\d{2}:\d{2}\b',  # Example: 2024-07-03 07:04:04+00:00
+        r'\b[A-Za-z]{3} \d{2}, \d{4}, \d{2}:\d{2} [APM]{2}\b',  # Example: Jul 02, 2024, 12:32 AM
+        r'\b[A-Za-z]+ \d{1,2}, \d{4} at \d{1,2}:\d{2} [APM]{2} [A-Z]{3}\b',  # Example: July 3, 2024 at 4:34 PM EDT
+        r'\b[A-Za-z]{3}, [A-Za-z]{3} \d{1,2}, \d{4}, \d{1,2}:\d{2} [APM]{2} GMT[+-]\d{1,2}\b'  # Example: Thu, Jul 4, 2024, 4:13 AM GMT+8
+        r'\b\d{2}:\d{2} [APM]{2} [A-Z]{2} \d{2}/\d{2}/\d{4}\b'  # Example: 04:00 PM ET 07/03/2024
     ]
     
     # Check for dates in meta tags
@@ -113,17 +153,24 @@ def find_date_in_content(url):
 
 # ------------------------WEB SCRAPING FUNCTIONS------------------------
 # Fetch the HTML content of a webpage
-def fetch_page(url):
+def fetch_page(url, session):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36"
     }
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        return BeautifulSoup(response.text, 'html.parser')
-    else:
-        print(f"Failed to fetch the page. Status code: {response.status_code}")
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            return BeautifulSoup(response.text, 'html.parser')
+        elif response.status_code == 429:
+            print("Too many requests. Waiting for a while…")
+            return fetch_page(url)  # Retry the request
+        else:
+            print(f"Failed to fetch the page. Status code: {response.status_code}")
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"Request exception: {e}")
         return None
-
+    
 # Extract news articles from the parsed HTML content
 def extract_news(soup, articles, existing_link=None, existing_source=None, existing_title=None,update=False, latest_date=None):
     i = 1
@@ -138,6 +185,12 @@ def extract_news(soup, articles, existing_link=None, existing_source=None, exist
             source = item.select_one('div.MgUUmf.NUnG9d span').get_text(strip=True)
             date = item.select_one('div.OSrXXb.rbYSKb.LfVVr').get_text(strip=True)
 
+            if update == True and  (link in existing_link or (source in existing_source and title in existing_title)):
+                # print("Reached existing articles, stopping the scraping process.")
+                if i >= 1:
+                    i -= 1
+                continue  
+
             try:
                 article = Article(link)
                 article.download()
@@ -147,33 +200,38 @@ def extract_news(soup, articles, existing_link=None, existing_source=None, exist
             except:
                 # print(f"Failed to download the article: {title}")
                 content=""
+            # print(f'Title: {title}, source: {source}, date: {date}')            
 
             # Validate and parse the date
             if is_valid_date_format(date) == False and date != '':
-                # date = find_date_in_content(link)
-                try:
-                    date = article.publish_date
-                    if date == None or is_valid_date_format(date) == False:
-                        date = find_date_in_content(link)
-                except:
-                    continue
+                date=calculate_date(date)
+                # # date = find_date_in_content(link)
+                # try:
+                #     date = article.publish_date
+                #     # print('\n')
+                #     # print(f'Title: {title}, source: {source}, date: {date}')            
+                #     if date == None or is_valid_date_format(date) == False:
+                #         date = find_date_in_content(link)
+                #         # print(f'Title: {title}, source: {source}, date: {date}')            
+                # except:
+                #     # print(f'Title: {title}, source: {source}, date: {date}')            
+                #     continue
 
-                if date == None:
-                    continue
-                if type(date) != str:
-                    date=date.strftime("%Y年%m月%d日")
+                # if date == None:
+                #     continue
+                # if type(date) != str:
+                #     date=date.strftime("%Y年%m月%d日")
             else:
                 date = parse_date(date)
 
-            # print(f'Title: {title}, source: {source}')            
+            print(f'Title: {title}, source: {source}, date: {date}')            
+            if is_valid_date_format(date) == False:
+                continue
+            # print(f'Title: {title}, source: {source}, date: {date}')   
             # Check for existing articles if updating the CSV
             # method1: check if the date is earlier than the latest date
             # method2: check if the title is in the existing title and source is in the existing source
-            # articles_date = datetime.strptime(date, "%Y年%m月%d日")
-
-            if update == True and  (link in existing_link or (source in existing_source and title in existing_title)):
-                # print("Reached existing articles, stopping the scraping process.")
-                continue            
+            # articles_date = datetime.strptime(date, "%Y年%m月%d日")          
             relevant_text = max(title.split('|'), key=len).strip()
 
             # Translate the text to English for sentiment analysis
@@ -203,7 +261,6 @@ def extract_news(soup, articles, existing_link=None, existing_source=None, exist
             # # Extract the main content
             # main_content = article.text
             i += 1
-            # print(f"Title: {title}")
             articles.append({
                 'title': title,
                 'title_translated': translated_text,
@@ -254,16 +311,16 @@ def scrape_func(update=False, target='上海商銀'):
     # Load existing data
     final_csv_file_path = search_target+'.csv'
     existing_data = load_existing_data(final_csv_file_path)
-    existing_title = set(existing_data['title'].tolist())# Google News search URL for Shanghai Commercial Bank
+    existing_title = set(existing_data['title'].tolist())
     existing_source = set(existing_data['source'].tolist())
     existing_link = set(existing_data['link'].tolist())
 
-    if not existing_data.empty:
+    if not len(existing_title)==0:
         latest_date_str = existing_data['date'].max()
         latest_date = datetime.strptime(latest_date_str, "%Y年%m月%d日")
+        update=True
     else:
         latest_date = datetime.min
-        update=False
 
     # Initialize the list to hold articles
     articles = []
@@ -273,7 +330,7 @@ def scrape_func(update=False, target='上海商銀'):
         num_search=50
     else:
         num_search=9999
-
+    print(f"proceeding searchig for {search_target} for {num_search} articles")
     for i in range(0, num_search, 10):
         soup = fetch_page(search_url + str(i))
         print(search_url + str(i))
@@ -299,4 +356,6 @@ def scrape_func(update=False, target='上海商銀'):
 
 if __name__ == '__main__':
     current_target = sys.stdin.read().strip()
-    scrape_func(update=True, target=current_target)
+    # current_target = 'sk telecom'
+    print(f"current target: {current_target}")
+    scrape_func(update=False, target=current_target)

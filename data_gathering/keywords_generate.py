@@ -8,7 +8,7 @@ import sys
 from transformers import AutoModel, AutoTokenizer
 import os
 
-
+current_target=""
 # Specify the model name
 model_name = 'sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2'
 
@@ -23,7 +23,7 @@ if not os.path.exists(save_directory):
     # Save the model and tokenizer
     tokenizer.save_pretrained(save_directory)
     model.save_pretrained(save_directory)
-
+     
 tokenizer = AutoTokenizer.from_pretrained(save_directory)
 model = AutoModel.from_pretrained(save_directory)
 
@@ -38,11 +38,33 @@ exclude_words = ['亿元', '百亿元', '千亿元', '百亿', '千亿', '亿',
                  '亿美元', '百亿美元', '千亿美元',
                  '百万美元', '千万美元', '百万美元', '万美元', 
                  '千万', '百万', '万', '千万元', '百万元', '万元',
-                 '今年', '去年', '明年']
+                 '今年', '去年', '明年', 
+                 'year', 'last year', 'next year',
+                 'thousand', 'million', 'billion', 'trillion',
+                 'dollars', 'yuan', 'euros', 'pounds', 'yen', 'won', 'rupees', 'pesos', 'ringgit', 'baht', 'dong', 'rupiah', 'lira', 'real', 'dinar', 'dirham', 'riyal', 'shekel', 'koruna', 'krona', 'kroner', 'zloty', 'forint', 'lev', 'leu', 'lira', 'loti', 'mark', 'pataca', 'peseta', 'rand', 'ruble', 'rupiah', 'shilling', 'sol', 'som', 'tenge', 'tugrik', 'vatu', 'won', 'yen', 'yuan', 'zloty', 'cent', 'euro', 'dollar', 'pound', 'yen', 'won', 'rupee', 'peso', 'ringgit', 'baht', 'dong', 'rupiah', 'lira', 'real', 'dinar', 'dirham', 'riyal', 'shekel', 'koruna', 'krona', 'kroner', 'zloty', 'forint', 'lev', 'leu', 'lira', 'loti', 'mark', 'pataca', 'peseta', 'rand', 'ruble', 'rupiah', 'shilling', 'sol', 'som', 'tenge', 'tugrik', 'vatu', 'won', 'yen', 'yuan', 'zloty', 'cent', 'euro', 'dollar', 'pound', 'yen', 'won', 'rupee', 'peso', 'ringgit', 'baht', 'dong', 'rupiah', 'lira', 'real', 'dinar', 'dirham', 'riyal', 'shekel', 'koruna', 'krona', 'kroner', 'zloty', 'forint', 'lev', 'leu', 'lira', 'loti', 'mark', 'pataca', 'peseta', 'rand', 'ruble', 'rupiah', 'shilling', 'sol', 'som', 'tenge', 'tugrik', 'vatu', 'won', 'yen', 'yuan', 'zloty', 'cent'
+                 ]
 
 target_wrods = []
 
+def is_english_or_mandarin(text):
+    english_count = 0
+    mandarin_count = 0
+    
+    for char in text:
+        # Check if the character is an English letter
+        if 'a' <= char <= 'z' or 'A' <= char <= 'Z':
+            english_count += 1
+        # Check if the character is a Mandarin character
+        elif '\u4e00' <= char <= '\u9fff':
+            mandarin_count += 1
 
+    if mandarin_count > 0:
+        return "Mandarin"
+    elif english_count > 0:
+        return "English"
+    else:
+        return "Unknown"
+    
 def is_number(word):
     try:
         float(word)
@@ -116,13 +138,19 @@ def process_row(row):
 # # Read the CSV file
 df = pd.read_csv('news_data_cleaned.csv')
 
-if __name__ == '__main__':
+if __name__ == '__main__':    
     current_target = sys.stdin.read().strip()
-    simplified_current_target = traditional_to_simplified.convert(current_target)
-#    Segmentize the current target and add all segments to exclude_words
-    segmented_target = ",".join(jieba.cut(simplified_current_target)).split(',')
-    exclude_words.extend(segmented_target)
-    target_wrods.extend(segmented_target)
+    
+    # Check if the target is in English or Mandarin
+    # Segmentize the current target and add all segments to exclude_words
+    if is_english_or_mandarin(current_target) == "Mandarin":
+        simplified_current_target = traditional_to_simplified.convert(current_target)
+        segmented_target = ",".join(jieba.cut(simplified_current_target)).split(',')
+        exclude_words.extend(segmented_target)
+        target_wrods.extend(segmented_target)
+    else:
+        exclude_words.extend(current_target.split())
+        target_wrods.extend(current_target.split())
     df['keywords'] = df.apply(lambda row: process_row(row), axis=1)
 
     # Write the updated DataFrame to a new CSV file

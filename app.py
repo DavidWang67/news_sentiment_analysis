@@ -87,7 +87,8 @@ def read_data(csv_file_path):
 
 @app.route('/')
 def index():
-    display_data = data.drop(columns=['topic_description', 'topic','link', 'title_translated','content', 'keywords'],inplace=False)
+    display_data=data.copy()
+    display_data.drop(columns=['topic_description', 'topic','link', 'title_translated','content', 'keywords'],inplace=True)
     # Add classes to the columns
     display_data.columns = [
         '<th class="label-col">label</th>',
@@ -137,7 +138,7 @@ def refresh_data():
         global data
         global current_target
 
-        target = request.form.get('target',current_target)
+        target = request.form.get('target', current_target)
         csv_file_path = target+'.csv'
         print(f"Refreshing data for target: {target}")
         global process
@@ -155,10 +156,11 @@ def refresh_data():
 
         # if process.returncode != 0:
         #     raise subprocess.CalledProcessError(process.returncode, process.args, output=stdout, stderr=stderr)
+        print(stdout)
 
         if process.returncode != 0:
+            print(stderr)
             return redirect(url_for('index'))
-        print(stdout)
 
         if "No news articles found. Exiting the program." in stdout:
             try:
@@ -188,7 +190,8 @@ def refresh_data():
             print("Updating target CSV...")
             process_update = subprocess.run(['python3', 'data_gathering/update_finalCSV.py'], input=target, capture_output=True, text=True, check=True)
             print(process_update.stdout)
-
+        else:
+            print(stderr)
         current_target = target
         data = read_data(csv_file_path)
         return redirect(url_for('index'))
@@ -335,6 +338,7 @@ def filtered_wordcloud():
 
 if __name__ == '__main__':
     try:
+        print("Looking for news articles...")
         process = subprocess.Popen(
             ['python3', 'data_gathering/web_scrape.py'],
             stdin=subprocess.PIPE,
