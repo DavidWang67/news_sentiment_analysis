@@ -8,7 +8,7 @@ Features:
 Tech Stack:
 - Programming Language: Python, Javascript
 - Libraries: BeautifulSoup, Requests, NLTK, SpaCy, Transformers (Hugging Face), Matplotlib/Seaborn for visualization
-- Model: [sentiment analysis model](https://huggingface.co/mrm8488/distilroberta-finetuned-financial-news-sentiment-analysis), topics extraction model:BERTopic with hdbscan
+- Model: [sentiment analysis model](https://huggingface.co/mrm8488/distilroberta-finetuned-financial-news-sentiment-analysis), topics extraction model(BERTopic with hdbscan)
 
 How to Use:
 1. lone the repository.
