@@ -11,7 +11,7 @@ Tech Stack:
 - Model: [sentiment analysis model](https://huggingface.co/mrm8488/distilroberta-finetuned-financial-news-sentiment-analysis), topics extraction model(BERTopic with hdbscan)
 
 How to Use:
-1. lone the repository.
+1. clone the repository.
 2. Install the required dependencies.
 3. Run the app.py to start the program
 
