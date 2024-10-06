@@ -4,17 +4,18 @@ Features:
 	•	Sentiment Analysis: Uses a fine-tuned sentiment analysis model to classify the tone of articles as positive, negative, or neutral.
 	•	Topic Extraction: Extracts key topics and entities from each article using advanced natural language processing (NLP) techniques.
 	•	Data Visualization: Provides visual insights on sentiment distribution and trending topics.
+	•	Language support: English, Mandarin
 
 Tech Stack:
 
-	•	Programming Language: Python
+	•	Programming Language: Python, Javascript
 	•	Libraries: BeautifulSoup, Requests, NLTK, SpaCy, Transformers (Hugging Face), Matplotlib/Seaborn for visualization
-	•	Model: Pre-trained BERT model fine-tuned for sentiment analysis and topic modeling.
+	•	Model: [sentiment analysis model](https://huggingface.co/mrm8488/distilroberta-finetuned-financial-news-sentiment-analysis), topics extraction model:BERTopic with hdbscan
 
 How to Use:
 
 	1.	Clone the repository.
 	2.	Install the required dependencies.
-	3.	Run the script to start scraping and analyzing news articles.
+	3.	Run the app.py to start the program
 
 Feel free to customize this based on your project specifics! Let me know if you’d like to tweak or add anything.
